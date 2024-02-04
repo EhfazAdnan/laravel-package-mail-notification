@@ -8,8 +8,19 @@ use Illuminate\Support\Facades\Mail;
 class PasswordChangeObserver
 {
     public function updated($model){
-        if($model->wasChanged('password')){
-          Mail::to($model->email)->send(new PasswordChangedNotificationMail);
+
+        if(!$model->isPasswordChanged()){
+            return;
         }
+
+        $mail = Mail::to($model->getRawOriginal($model->emailColumnName()));
+
+        if($model->shouldPasswordChangedNotificationMailBeQueued()){
+            $mail->queue($model->passwordChangeNotificationMail());
+            return;
+        }
+
+        $mail->send($model->passwordChangeNotificationMail());
+
     }
 }

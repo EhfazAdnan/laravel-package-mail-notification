@@ -3,9 +3,11 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Mail\PasswordChangedNotificationMail;
 use App\Observers\PasswordChangeObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -47,5 +49,30 @@ class User extends Authenticatable
     public static function booted()
     {
         static::observe(PasswordChangeObserver::class);
+    }
+
+    public function passwordColumnName(): string
+    {
+        return 'password';
+    }
+
+    public function emailColumnName(): string
+    {
+        return 'email';
+    }
+
+    public function passwordChangeNotificationMail(): Mailable
+    {
+        return new PasswordChangedNotificationMail;
+    }
+
+    public function isPasswordChanged(): bool
+    {
+        return $this->wasChanged($this->passwordColumnName());
+    }
+
+    public function shouldPasswordChangedNotificationMailBeQueued(): bool
+    {
+        return false;
     }
 }
