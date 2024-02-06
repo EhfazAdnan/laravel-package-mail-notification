@@ -3,17 +3,19 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Contracts\PasswordChangedNotificationContract;
 use App\Mail\PasswordChangedNotificationMail;
 use App\Observers\PasswordChangeObserver;
+use App\Trait\PasswordChangedNotificationTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements PasswordChangedNotificationContract
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, PasswordChangedNotificationTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -45,34 +47,4 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
-
-    public static function booted()
-    {
-        static::observe(PasswordChangeObserver::class);
-    }
-
-    public function passwordColumnName(): string
-    {
-        return 'password';
-    }
-
-    public function emailColumnName(): string
-    {
-        return 'email';
-    }
-
-    public function passwordChangeNotificationMail(): Mailable
-    {
-        return new PasswordChangedNotificationMail;
-    }
-
-    public function isPasswordChanged(): bool
-    {
-        return $this->wasChanged($this->passwordColumnName());
-    }
-
-    public function shouldPasswordChangedNotificationMailBeQueued(): bool
-    {
-        return false;
-    }
 }
